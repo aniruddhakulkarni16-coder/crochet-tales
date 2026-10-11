@@ -1,5 +1,4 @@
-export const API_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000";
+export const API_URL = "https://crochet-tales-server.onrender.com";
 
 export function availabilityLabel(availability) {
   if (availability === "out_of_stock") return "Out of Stock";
