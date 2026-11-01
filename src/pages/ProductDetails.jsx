@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { API_URL, availabilityLabel } from "../config";
+import { useAdmin } from "../admin/AdminContext";
+import { deleteProduct } from "../admin/adminApi";
+import YarnLoader from "../components/YarnLoader";
 
 function ProductDetails() {
 
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { isAdmin } = useAdmin();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [adminError, setAdminError] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -28,12 +34,8 @@ function ProductDetails() {
       });
   }, [id]);
 
-  if (loading) {
-    return (
-      <div className="not-found">
-        <h1>Loading...</h1>
-      </div>
-    );
+    if (loading) {
+    return <YarnLoader text="Loading product..." />;
   }
 
   if (!product) {
@@ -50,6 +52,20 @@ function ProductDetails() {
 
   const isAvailable = product.availability === "available";
   const total = product.price * quantity;
+
+  const handleDelete = async () => {
+    const sure = window.confirm(
+      "Are you sure you want to delete this product?\n\n" + product.name
+    );
+    if (!sure) return;
+
+    try {
+      await deleteProduct(product.productId);
+      navigate("/products");
+    } catch (err) {
+      setAdminError(err.message);
+    }
+  };
 
   const purchaseOnWhatsApp = () => {
 
@@ -90,15 +106,26 @@ Thank you! ❤️`;
         ← Back to Products
       </Link>
 
+      {isAdmin && (
+        <div className="owner-toolbar">
+          <Link
+            to={`/admin/products/edit/${product.productId}`}
+            className="owner-add"
+          >
+            Edit this product
+          </Link>
+          <button className="owner-delete" onClick={handleDelete}>
+            Delete
+          </button>
+          {adminError && <span>{adminError}</span>}
+        </div>
+      )}
+
       <div className="details-container">
 
         <div className="details-product-image">
 
-          <img
-            src={product.image}
-            alt={product.name}
-            style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "15px" }}
-          />
+          <img src={product.image} alt={product.name} />
 
           {!isAvailable && (
             <div className="large-unavailable">

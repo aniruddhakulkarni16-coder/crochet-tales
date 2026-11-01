@@ -1,60 +1,80 @@
+import { useEffect } from "react";
 import {
   BrowserRouter,
   Routes,
   Route,
   Link,
+  Outlet,
+  Navigate,
+  useLocation,
 } from "react-router-dom";
 
 import Products from "./pages/Products";
 import ProductDetails from "./pages/ProductDetails";
 
-import AdminLogin from "./admin/AdminLogin";
 import AdminDashboard from "./admin/AdminDashboard";
-import AdminLayout from "./admin/AdminLayout";
 import AdminProducts from "./admin/AdminProducts";
 import AdminProductForm from "./admin/AdminProductForm";
+import { AdminProvider, useAdmin } from "./admin/AdminContext";
+import RequireAdmin from "./admin/RequireAdmin";
 
-function Home() {
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
+import LoginModal from "./components/LoginModal";
+
+function PublicLayout() {
+  const { pathname, hash } = useLocation();
+
+  useEffect(() => {
+    if (hash) {
+      const el = document.getElementById(hash.slice(1));
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth" });
+        return;
+      }
+    }
+    window.scrollTo(0, 0);
+  }, [pathname, hash]);
+
+  useEffect(() => {
+    const els = document.querySelectorAll(".reveal, .stitch-divider");
+    if (!("IntersectionObserver" in window)) {
+      els.forEach((e) => e.classList.add("in-view"));
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((en) => {
+          if (en.isIntersecting) {
+            en.target.classList.add("in-view");
+            io.unobserve(en.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+    els.forEach((e) => io.observe(e));
+    return () => io.disconnect();
+  }, [pathname]);
 
   return (
+    <>
+      <div key={"thread-" + pathname} className="route-thread" aria-hidden="true" />
+      <Navbar />
+      <div key={pathname} className="page-enter">
+        <Outlet />
+      </div>
+      <Footer />
+    </>
+  );
+}
 
+function Home() {
+  return (
     <div>
-
-      <nav className="navbar">
-
-        <Link
-          to="/"
-          className="logo"
-        >
-          Crochet Tales 🧶
-        </Link>
-
-        <div className="nav-links">
-
-          <Link to="/">
-            Home
-          </Link>
-
-          <Link to="/products">
-            Products
-          </Link>
-
-          <a href="#about">
-            About
-          </a>
-
-        </div>
-
-      </nav>
-
-
       <section className="hero">
-
         <div className="hero-content">
-
-          <p className="small-title">
-            HANDMADE WITH LOVE ❤️
-          </p>
+          <p className="small-title">HANDMADE WITH LOVE ❤️</p>
 
           <h1>
             Little Loops.
@@ -63,86 +83,58 @@ function Home() {
           </h1>
 
           <p className="hero-description">
-            Discover unique handmade crochet
-            creations made specially for you,
+            Discover unique handmade crochet creations made specially for you,
             one stitch at a time.
           </p>
 
-          <Link
-            to="/products"
-            className="shop-button"
-          >
+          <Link to="/products" className="shop-button">
             Explore Collection →
           </Link>
-
         </div>
 
+        <svg
+          className="hero-thread"
+          viewBox="0 0 1200 120"
+          preserveAspectRatio="xMidYMax slice"
+          aria-hidden="true"
+        >
+          <path
+            pathLength="100"
+            d="M0 80 C150 20, 250 120, 400 70 S650 10, 780 65 C840 95, 900 40, 860 35 C820 30, 820 85, 880 85 S1050 40, 1200 70"
+          />
+        </svg>
       </section>
 
+      
+    
+      <div className="stitch-divider" aria-hidden="true" />
 
-      <section className="home-products">
+      <section className="story" id="about">
+                        <div className="story-design reveal">
+          <img
+            src="/images/frontend.jpeg"
+            alt="Hands crocheting with green yarn"
+            loading="lazy"
+          />
 
-        <div className="section-title">
-
-          <p>SHOP OUR FAVORITES</p>
-
-          <h2>
-            Made With Love
-          </h2>
-
-          <span>
-            Handmade pieces for every special moment.
-          </span>
-
-        </div>
-
-        <div className="mini-products">
-
-          <div className="mini-card">
-            <span>🧸</span>
-            <h3>Crochet Toys</h3>
-            <p>Soft little friends</p>
-          </div>
-
-          <div className="mini-card">
-            <span>💐</span>
-            <h3>Forever Flowers</h3>
-            <p>Flowers that never fade</p>
-          </div>
-
-          <div className="mini-card">
-            <span>👜</span>
-            <h3>Handmade Bags</h3>
-            <p>Beautiful everyday pieces</p>
-          </div>
-
-        </div>
-
-        <div className="center-button">
-
-          <Link
-            to="/products"
-            className="outline-button"
+          <svg
+            className="story-border"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            aria-hidden="true"
           >
-            View All Products
-          </Link>
-
+            <path
+              className="story-ring"
+              d="M0 50 A50 50 0 0 1 50 0 A50 50 0 0 1 100 50 L100 55 A45 45 0 0 1 55 100 L45 100 A45 45 0 0 1 0 55 Z"
+            />
+            <path
+              className="story-stitches"
+              d="M0 50 A50 50 0 0 1 50 0 A50 50 0 0 1 100 50 L100 55 A45 45 0 0 1 55 100 L45 100 A45 45 0 0 1 0 55 Z"
+            />
+          </svg>
         </div>
 
-      </section>
-
-
-      <section
-        className="story"
-        id="about"
-      >
-
-        <div className="story-design">
-          🧶
-        </div>
-
-        <div className="story-content">
-
+        <div className="story-content reveal">
           <p>THE STORY BEHIND THE STITCH</p>
 
           <h2>
@@ -154,72 +146,57 @@ function Home() {
           </h2>
 
           <span>
-            Crochet Tales is built around the
-            simple joy of creating something
-            beautiful by hand. Every piece takes
-            time, patience and lots of love.
+            Crochet Tales is built around the simple joy of creating something
+            beautiful by hand. Every piece takes time, patience and lots of
+            love.
           </span>
 
-          <Link
-            to="/products"
-            className="story-button"
-          >
+          <Link to="/products" className="story-button">
             Discover Our Collection
           </Link>
-
         </div>
-
       </section>
-
-
-      <footer>
-
-        <h3>
-          Crochet Tales 🧶
-        </h3>
-
-        <p>
-          Handmade with love, one stitch at a time.
-        </p>
-
-        <small>
-          © 2026 Crochet Tales
-        </small>
-
-      </footer>
-
     </div>
   );
 }
 
+function AdminLoginRedirect() {
+  const { openLogin } = useAdmin();
+
+  useEffect(() => {
+    openLogin();
+  }, [openLogin]);
+
+  return <Navigate to="/" replace />;
+}
 
 function App() {
-
   return (
-
     <BrowserRouter>
+      <AdminProvider>
+        <Routes>
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/product/:id" element={<ProductDetails />} />
 
-            <Routes>
+            <Route element={<RequireAdmin />}>
+              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/products" element={<AdminProducts />} />
+              <Route path="/admin/products/add" element={<AdminProductForm />} />
+              <Route
+                path="/admin/products/edit/:id"
+                element={<AdminProductForm />}
+              />
+            </Route>
+          </Route>
 
-        <Route path="/" element={<Home />} />
+          <Route path="/admin/login" element={<AdminLoginRedirect />} />
+        </Routes>
 
-        <Route path="/products" element={<Products />} />
-
-        <Route path="/product/:id" element={<ProductDetails />} />
-
-        <Route path="/admin/login" element={<AdminLogin />} />
-
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="products" element={<AdminProducts />} />
-          <Route path="products/add" element={<AdminProductForm />} />
-          <Route path="products/edit/:id" element={<AdminProductForm />} />
-        </Route>
-
-      </Routes>
-
+        <LoginModal />
+      </AdminProvider>
     </BrowserRouter>
-
   );
 }
 
